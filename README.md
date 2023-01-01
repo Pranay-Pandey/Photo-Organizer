@@ -1,7 +1,7 @@
-# Photo-Sharing-App
+# Photo-Organizer-App
 
 ## About the Project
-Photo Sharing App is a web app that allows a user to get group photos that include them without having to keep or sort through all of the photos, saving them time and
+Photo Organizer App is a web app that allows a user to get group photos that include them without having to keep or sort through all of the photos, saving them time and
 storage space. When a photo is uploaded, the app identifies the faces in it and arranges them according to the users who have been identified. Each identified user gets
 a separate album with all their photos allowing them to get the photos they need seamlessly.
 Upload group photos, arrange them by faces using ML and share them with ease. ðŸ¤³ðŸ¤–
@@ -12,7 +12,7 @@ Upload group photos, arrange them by faces using ML and share them with ease. ðŸ
     - (Optional) [Set your username in Git.](https://help.github.com/articles/setting-your-username-in-git)
     - (Optional) [Set your commit email address in Git.](https://help.github.com/articles/setting-your-commit-email-address-in-git)
     2. ### Cloning the Repo in your local machine
-    - Run ``git clone git@github.com:OpenLake/Photo-Sharing-App.git``
+    - Run ``git clone git@github.com:Pranay-Pandey/Photo-Organizer.git``
     - ``cd Photo-Sharing-App``
     - Make a virtual environment named .env ``python3 -m venv .env``
     - Activate ``.env`` by ``source .env/bin/activate``
@@ -20,14 +20,6 @@ Upload group photos, arrange them by faces using ML and share them with ease. ðŸ
     - Run script ``bash setup.sh``
     - Go to  http://127.0.0.1:8000/
     - You are good to go! ðŸ¤˜
-
-## Usage
-![1](https://user-images.githubusercontent.com/72318258/150670154-05acfa34-7ffd-4bcb-a790-219501713454.png)
-Landing Page
-
-
-![2](https://user-images.githubusercontent.com/72318258/150670156-99289a1b-0606-4f3f-b438-82596afbc1b8.png)
-Room Creation Page
 
 
 ![3](https://user-images.githubusercontent.com/72318258/150670158-1e18c160-9a04-4412-999a-051e228887cc.png)
