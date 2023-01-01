@@ -6,7 +6,12 @@ from django.http import HttpResponse
 from home.models import Photo, Person, PersonGallery
 import string
 import random
-
+from .instafile import get_files_from_insta
+from PIL import Image
+from django.core.files import File
+from django.core.files.images import ImageFile
+from django.core.files.uploadedfile import InMemoryUploadedFile
+from shutil import move
 # Required for image processing
 import face_recognition
 import cv2
@@ -36,20 +41,52 @@ def landing(request):
 
 def index(request):
     user = request.user
+    user_now = user
     if user.is_anonymous:
         return redirect("/landing")
 
     elif request.method == "POST":
-        images = request.FILES.getlist("images")
-        for image in images:
-            print(image)
-            photo = Photo.objects.create(user=user, image=image)
-            photo.save()
+        profileID = request.POST['instaIDtextBox']
+        print("len(profileID) = ", len(profileID))
+        if (len(profileID)==0):
+            images = request.FILES.getlist("images")
+            for image in images:
+                print(image)
+                print("typeof   = ", type(image))
+                photo = Photo.objects.create(user=user, image=image)
+                photo.save()
+        else:
+            get_files_from_insta(profileID)
+            print("Get file from ID called")
+            # print("directory place = ", os.getcwd())
+            current_dir = f"{profileID}"
+            # print("current_dir = ", current_dir)
 
-    photos = Photo.objects.filter(user=user)
-    count = photos.count()
+            for file in os.listdir(current_dir):
+                if ".jpg" in file:
+                    original = os.path.join(current_dir,file)
+                    image_path = os.path.join(r'backend/static/images',file)
+                    move(original,image_path)
+                    print("image_path = ",image_path)
+                    image_file = Image.open(image_path)
+                    kimage = ImageFile(image_file)
+                    print("typeof = ", type(kimage))
+                    if(kimage==None):
+                        print("RED FLAG = error error XXXXXXXXXX")
 
-    context = {"photos": photos, "count": count}
+                    with open(image_path,'rb') as f:
+                        pho = Photo(user=user_now)
+                        pho.image.save(file, File(f))
+                        pho.save()
+                
+    photok = Photo.objects.filter(user=user_now)
+    # print("photok = "+str(photok))
+    print("typeof(photok)= "+ str(type(photok)))
+    print("count(photok)= "+ str(photok.count()))
+
+    count = photok.count()
+
+    context = {"photos": photok, "count": count}
     return render(request, "index.html", context)
 
 
@@ -113,15 +150,17 @@ def process(request):
             "error_message": "No photos to process.\n Upload some photos and then Try again"
         }
         return render(request, "404.html", context)
-    imagePaths = [("static/images/" + str(photo.image)) for photo in photos]
+    imagePaths = [("/backend/static/images/" + str(photo.image)) for photo in photos]
     data = []
 
     for (i, imagePath) in enumerate(imagePaths):
         # load the input image and convert it from RGB (OpenCV ordering)
         # to dlib ordering (RGB)
         print("[INFO] processing image {}/{}".format(i + 1, len(imagePaths)))
+        imagePath = os.getcwd()+imagePath
         print(imagePath)
         image = cv2.imread(imagePath)
+
         rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
         # detect the (x, y)-coordinates of the bounding boxes
         # corresponding to each face in the input image
@@ -160,7 +199,7 @@ def process(request):
         face = image[top:bottom, left:right]
         face = cv2.resize(face, (96, 96))
         face_img_path = f"{user.get_username()}_owner{labelID}.jpg"
-        cv2.imwrite(f"static/images/{face_img_path}", face)
+        cv2.imwrite(f"backend/static/images/{face_img_path}", face)
         person = Person.objects.create(user=user, thumbnail=face_img_path)
         person.save()
 
@@ -176,12 +215,13 @@ def process(request):
 
     score_list = []
     numUniqueFaces = persons.count()
-    path = os.getcwd() + str("/static/images/")
+    path = os.getcwd() + str("/backend/static/images/")
 
     for i in range(numUniqueFaces):
         intmd_lst = []
         for j in range(i + 1, numUniqueFaces):
             image1 = cv2.imread(path + str(persons[i].thumbnail))
+            print("path creating problem= ",path + str(persons[i].thumbnail))
             image1 = cv2.cvtColor(image1, cv2.COLOR_BGR2GRAY)
             image2 = cv2.imread(path + str(persons[j].thumbnail))
             image2 = cv2.cvtColor(image2, cv2.COLOR_BGR2GRAY)
@@ -226,8 +266,8 @@ def albumGallery(request):
 
     score_list = []
     numUniqueFaces = persons.count()
-    path = os.getcwd() + str("/static/images/")
-
+    path = os.getcwd() + str("/backend/static/images/")
+    print("Line 232 path = ",os.getcwd())
     for i in range(numUniqueFaces):
         intmd_lst = []
         for j in range(i + 1, numUniqueFaces):
@@ -298,7 +338,7 @@ def downloadZIP(request, pk):
     archive = zipfile.ZipFile(temp, "w", zipfile.ZIP_DEFLATED)
     for photo in allPhotos:
         filename = (
-            os.getcwd() + str("/static/images") + photo.image.url
+            os.getcwd() + str("/backend/static/images") + photo.image.url
         )  # Replace by your files here.
         photo_name = photo.image.url[1:]
         archive.write(filename, f"{photo_name}")
